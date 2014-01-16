@@ -32,12 +32,12 @@ class Chosen extends AbstractChosen
 
     container_props =
       'class': container_classes.join ' '
-      'style': "width: #{this.container_width()};"
       'title': @form_field.title
 
     container_props.id = @form_field.id.replace(/[^\w]/g, '_') + "_chosen" if @form_field.id.length
 
     @container = ($ "<div />", container_props)
+    @container.css { width: @container_width("collapsed", true) }
 
     if @is_multiple
       @container.html '<ul class="chosen-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chosen-drop"><ul class="chosen-results"></ul></div>'
@@ -226,6 +226,11 @@ class Chosen extends AbstractChosen
       return false
 
     @container.addClass "chosen-with-drop"
+
+    new_width = @container_width("expanded");
+    if new_width
+      @container.css({ width: new_width });
+
     @form_field_jq.trigger("chosen:showing_dropdown", {chosen: this})
 
     @results_showing = true
@@ -241,6 +246,10 @@ class Chosen extends AbstractChosen
   results_hide: ->
     if @results_showing
       this.result_clear_highlight()
+
+      new_width = @container_width("collapsed");
+      if new_width
+        @container.css({ width: new_width });
 
       @container.removeClass "chosen-with-drop"
       @form_field_jq.trigger("chosen:hiding_dropdown", {chosen: this})

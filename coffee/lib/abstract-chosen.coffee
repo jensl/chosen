@@ -222,8 +222,13 @@ class AbstractChosen
         # don't do anything on these keys
       else this.results_search()
 
-  container_width: ->
-    return if @options.width? then @options.width else "#{@form_field.offsetWidth}px"
+  container_width: (mode, initial) ->
+    if mode == "collapsed" and @options.collapsed_width
+      return @options.collapsed_width
+    else if mode == "expanded" and @options.expanded_width
+      return @options.expanded_width
+    else if initial
+      return if @options.width? then @options.width else "#{@form_field.offsetWidth}px"
 
   include_option_in_results: (option) ->
     return false if @is_multiple and (not @display_selected_options and option.selected)
