@@ -316,7 +316,8 @@ class Chosen extends AbstractChosen
     this.result_clear_highlight() if $(evt.target).hasClass "active-result" or $(evt.target).parents('.active-result').first()
 
   choice_build: (item) ->
-    choice = $('<li />', { class: "search-choice" }).html("<span>#{item.html}</span>")
+    choice = $('<li></li>', { class: "search-choice" }).html("<span></span>");
+    choice.find("span").text(item.text);
 
     if item.disabled
       choice.addClass 'search-choice-disabled'
