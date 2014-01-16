@@ -192,7 +192,7 @@ class Chosen extends AbstractChosen
     if @is_multiple
       @search_choices.find("li.search-choice").remove()
     else if not @is_multiple
-      this.single_set_selected_text()
+      this.single_set_selected_text(null, true)
       if @disable_search or @form_field.options.length <= @disable_search_threshold
         @search_field[0].readOnly = true
         @container.addClass "chosen-container-single-nosearch"
@@ -345,7 +345,7 @@ class Chosen extends AbstractChosen
   results_reset: ->
     this.reset_single_select_options()
     @form_field.options[0].selected = true
-    this.single_set_selected_text()
+    this.single_set_selected_text(null, true)
     this.show_search_field_default()
     this.results_reset_cleanup()
     @form_field_jq.trigger "change"
@@ -379,7 +379,7 @@ class Chosen extends AbstractChosen
       if @is_multiple
         this.choice_build item
       else
-        this.single_set_selected_text(item.text)
+        this.single_set_selected_text(@selected_value(item))
 
       this.results_hide() unless (evt.metaKey or evt.ctrlKey) and @is_multiple
 
@@ -389,14 +389,19 @@ class Chosen extends AbstractChosen
       @current_selectedIndex = @form_field.selectedIndex
       this.search_field_scale()
 
-  single_set_selected_text: (text=@default_text) ->
-    if text is @default_text
+  single_set_selected_text: (value, set_default) ->
+    if set_default
       @selected_item.addClass("chosen-default")
+      if value is null
+        value = { text: @default_text }
     else
       this.single_deselect_control_build()
       @selected_item.removeClass("chosen-default")
 
-    @selected_item.find("span").text(text)
+    if value.text
+      @selected_item.find("span").text(value.text)
+    else
+      @selected_item.find("span").html(value.html)
 
   result_deselect: (pos) ->
     result_data = @results_data[pos]
@@ -527,3 +532,9 @@ class Chosen extends AbstractChosen
         w = f_width - 10
 
       @search_field.css({'width': w + 'px'})
+
+  selected_value: (item) ->
+    if @options.generate_selected_value
+      return @options.generate_selected_value(item)
+    else
+      return { text: item.text }
