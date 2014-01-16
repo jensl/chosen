@@ -87,7 +87,7 @@ class AbstractChosen
     option_el.className = classes.join(" ")
     option_el.style.cssText = option.style
     option_el.setAttribute("data-option-array-index", option.array_index)
-    option_el.innerHTML = option.search_text
+    option_el.innerHTML = if @get_search_text() then option.search_text else option.html
 
     this.outerHTML(option_el)
 
@@ -153,7 +153,7 @@ class AbstractChosen
                 
         unless option.group and not @group_search
 
-          option.search_text = if option.group then option.label else option.html
+          option.search_text = if option.group then option.label else option.text
           option.search_match = this.search_string_match(option.search_text, regex)
           results += 1 if option.search_match and not option.group
 
