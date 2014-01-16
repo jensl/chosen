@@ -36,19 +36,23 @@ class Chosen extends AbstractChosen
 
     container_props.id = @form_field.id.replace(/[^\w]/g, '_') + "_chosen" if @form_field.id.length
 
-    @container = ($ "<div />", container_props)
+    @main_container = ($ "<div />", container_props)
+    @drop_container = ($ "<div />", container_props)
+    @container = $ [@main_container.get(0), @drop_container.get(0)]
     @container.css { width: @container_width("collapsed", true) }
 
     if @is_multiple
-      @container.html '<ul class="chosen-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chosen-drop"><ul class="chosen-results"></ul></div>'
+      @main_container.html '<ul class="chosen-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul>'
+      @drop_container.html '<div class="chosen-drop"><ul class="chosen-results"></ul></div>'
     else
-      @container.html '<a class="chosen-single chosen-default" tabindex="-1"><span>' + @default_text + '</span><div><b></b></div></a><div class="chosen-drop"><div class="chosen-search"><input type="text" autocomplete="off" /></div><ul class="chosen-results"></ul></div>'
+      @main_container.html '<a class="chosen-single chosen-default" tabindex="-1"><span>' + @default_text + '</span><div><b></b></div></a>'
+      @drop_container.html '<div class="chosen-drop"><div class="chosen-search"><input type="text" autocomplete="off" /></div><ul class="chosen-results"></ul></div>'
 
-    @form_field_jq.hide().after @container
-    @dropdown = @container.find('div.chosen-drop').first()
+    @form_field_jq.hide().after @main_container
+    @dropdown = @drop_container.first()
 
     @search_field = @container.find('input').first()
-    @search_results = @container.find('ul.chosen-results').first()
+    @search_results = @drop_container.find('ul.chosen-results').first()
     this.search_field_scale()
 
     @search_no_results = @container.find('li.no-results').first()
@@ -59,6 +63,13 @@ class Chosen extends AbstractChosen
     else
       @search_container = @container.find('div.chosen-search').first()
       @selected_item = @container.find('.chosen-single').first()
+
+    @drop_container.css
+      position: "absolute"
+      left: "-9999px"
+      top: 0
+
+    $("body").append @drop_container
 
     this.results_build()
     this.set_tab_index()
@@ -220,6 +231,13 @@ class Chosen extends AbstractChosen
     @result_highlight.removeClass "highlighted" if @result_highlight
     @result_highlight = null
 
+  results_realign: ->
+    @drop_container.css
+      position: "absolute"
+      left: @main_container.offset().left
+      top: @main_container.offset().top + @main_container.height()
+      width: @main_container.width()
+
   results_show: ->
     if @is_multiple and @max_selected_options <= this.choices_count()
       @form_field_jq.trigger("chosen:maxselected", {chosen: this})
@@ -233,10 +251,14 @@ class Chosen extends AbstractChosen
 
     @form_field_jq.trigger("chosen:showing_dropdown", {chosen: this})
 
+    @results_realign()
     @results_showing = true
 
     @search_field.focus()
     @search_field.val @search_field.val()
+
+    self = this
+    $(window).resize () => if self.results_showing then self.results_realign()
 
     this.winnow_results()
 
